@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Timer — VoltEdge</title>
+  <meta name="description" content="Premium minimal web timer by VoltEdge — presets, progress ring, sounds, dark theme, shareable links." />
+  <style>
+    :root {
+      --bg1: #0f1724;
+      --bg2: #0b1220;
+      --glass: rgba(255,255,255,0.04);
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --muted: rgba(255,255,255,0.6);
+      --glass-border: rgba(255,255,255,0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.12), transparent), 
+                  radial-gradient(900px 400px at 90% 90%, rgba(6,182,212,0.06), transparent), 
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      flex: 1;
+      min-width: 280px;
+    }
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .logo small { font-size: 16px; }
+    h1 { font-size: 20px; }
+    .small-quiet { font-size: 12px; color: var(--muted); }
+    .timer-face { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .ring { width: 260px; height: 260px; display: grid; place-items: center; position: relative; }
+    canvas { width: 260px; height: 260px; }
+    .time { position: absolute; display: flex; flex-direction: column; align-items: center; }
+    .time .big { font-size: 42px; font-weight: 700; letter-spacing: 1px; cursor: pointer; }
+    .time .big:hover { opacity: 0.8; }
+    .time .small { color: var(--muted); font-size: 13px; }
+    .time-input { display: none; gap: 8px; align-items: center; }
+    .time-input input {
+      width: 60px;
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      background: transparent;
+      color: #fff;
+      font-size: 18px;
+      text-align: center;
+    }
+    .time-input button {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .time-input button.primary {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #061024;
+      border: 0;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; justify-content: center; }
+    button.btn {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.06);
+      flex: 1;
+      min-width: 80px;
+      max-width: 120px;
+    }
+    button.primary {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #061024;
+      border: 0;
+    }
+    .presets { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+    .preset {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
+      background: transparent;
+      cursor: pointer;
+      color: #fff;
+    }
+    .settings-panel { display: none; margin-top: 20px; }
+    .settings-panel.open { display: block; }
+    .muted { color: var(--muted); font-size: 13px; }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.04);
+      color: #fff;
+    }
+    .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .full { grid-column: 1 / -1; }
+    .footer-note { color: var(--muted); font-size: 12px; margin-top: 12px; }
+    @media (max-width: 600px) {
+      .ring { width: 220px; height: 220px; }
+      canvas { width: 220px; height: 220px; }
+      .time .big { font-size: 36px; }
+      .time-input input { width: 50px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="brand">
+        <div class="logo"><small>V</small></div>
+        <div>
+          <h1>VoltEdge Timer</h1>
+          <div class="small-quiet">Premium, minimal, mobile-friendly</div>
+        </div>
+        <button id="settingsToggle" class="btn" style="margin-left:auto;max-width:46px;flex:0">⚙️</button>
+      </div>
+      <div class="timer-face">
+        <div class="ring">
+          <canvas id="progressRing" width="260" height="260"></canvas>
+          <div class="time" id="timeDisplay">
+            <div class="big" id="minutes">05:00</div>
+            <div class="small" id="status">Ready</div>
+            <div class="time-input" id="timeInput">
+              <input type="number" id="editMinutes" min="0" step="1" value="5">
+              <span>:</span>
+              <input type="number" id="editSeconds" min="0" max="59" step="1" value="0">
+              <button class="btn primary" id="applyTimeBtn">Set</button>
+              <button class="btn" id="cancelTimeBtn">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn primary" id="startBtn">Start</button>
+          <button class="btn" id="pauseBtn">Pause</button>
+          <button class="btn" id="resetBtn">Reset</button>
+          <button class="btn" id="fullscreenBtn">Full</button>
+        </div>
+        <div class="presets">
+          <button class="preset" data-seconds="300">5m</button>
+          <button class="preset" data-seconds="900">15m</button>
+          <button class="preset" data-seconds="1500">25m</button>
+          <button class="preset" data-seconds="3600">60m</button>
+          <button class="preset" data-seconds="0">Custom</button>
+        </div>
+      </div>
+      <div class="settings-panel" id="settingsPanel">
+        <h3>Settings & Quick Edit</h3>
+        <div><label class="muted">Minutes</label><input type="number" id="inputMinutes" min="0" step="1" value="5"></div>
+        <div><label class="muted">Seconds</label><input type="number" id="inputSeconds" min="0" max="59" step="1" value="0"></div>
+        <div class="settings">
+          <div><label class="muted">Ringtone</label><select id="soundSelect"><option value="beep">Beep</option><option value="chime">Chime</option><option value="alarm">Alarm</option></select></div>
+          <div><label class="muted">Autoplay</label><select id="autoplay"><option value="no">No</option><option value="yes">Yes</option></select></div>
+          <div class="full"><label class="muted">Shareable link</label><div style="display:flex;gap:8px"><input id="shareURL" readonly><button class="btn" id="copyLink">Copy</button></div></div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px"><button class="btn primary" id="applyBtn">Apply</button></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const startBtn = document.getElementById('startBtn'),
+          pauseBtn = document.getElementById('pauseBtn'),
+          resetBtn = document.getElementById('resetBtn'),
+          fullscreenBtn = document.getElementById('fullscreenBtn'),
+          minutesEl = document.getElementById('minutes'),
+          statusEl = document.getElementById('status'),
+          canvas = document.getElementById('progressRing'),
+          ctx = canvas.getContext('2d'),
+          presets = document.querySelectorAll('.preset'),
+          inputMinutes = document.getElementById('inputMinutes'),
+          inputSeconds = document.getElementById('inputSeconds'),
+          applyBtn = document.getElementById('applyBtn'),
+          shareURL = document.getElementById('shareURL'),
+          copyLink = document.getElementById('copyLink'),
+          settingsToggle = document.getElementById('settingsToggle'),
+          settingsPanel = document.getElementById('settingsPanel'),
+          timeDisplay = document.getElementById('timeDisplay'),
+          timeInput = document.getElementById('timeInput'),
+          editMinutes = document.getElementById('editMinutes'),
+          editSeconds = document.getElementById('editSeconds'),
+          applyTimeBtn = document.getElementById('applyTimeBtn'),
+          cancelTimeBtn = document.getElementById('cancelTimeBtn');
+
+    let totalSeconds = 300, remaining = 300, timerInterval = null;
+    const radius = canvas.width / 2;
+    const circumference = 2 * Math.PI * (radius - 10);
+
+    function drawRing(progress) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Background circle
+      ctx.beginPath();
+      ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 10;
+      ctx.stroke();
+      // Progress arc
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      gradient.addColorStop(0, '#7c3aed');
+      gradient.addColorStop(1, '#06b6d4');
+      ctx.beginPath();
+      ctx.arc(radius, radius, radius - 10, -Math.PI / 2, (progress * 2 * Math.PI) - Math.PI / 2);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    function fmt(s) {
+      return String(Math.floor(s / 60)).padStart(2, '0') + ":" + String(s % 60).padStart(2, '0');
+    }
+
+    function updateUI() {
+      minutesEl.textContent = fmt(remaining);
+      const progress = remaining / totalSeconds;
+      drawRing(progress);
+      statusEl.textContent = timerInterval ? 'Running' : remaining <= 0 ? 'Finished' : 'Paused';
+      const url = new URL(location.href);
+      url.searchParams.set('t', remaining);
+      shareURL.value = url;
+      editMinutes.value = Math.floor(remaining / 60);
+      editSeconds.value = remaining % 60;
+    }
+
+    function tick() {
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        statusEl.textContent = 'Finished';
+        updateUI();
+        return;
+      }
+      remaining--;
+      updateUI();
+    }
+
+    function startTimer() {
+      if (timerInterval || remaining <= 0) return;
+      timerInterval = setInterval(tick, 1000);
+      updateUI();
+    }
+
+    function pauseTimer() {
+      if (!timerInterval) return;
+      clearInterval(timerInterval);
+      timerInterval = null;
+      updateUI();
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      remaining = totalSeconds;
+      updateUI();
+    }
+
+    function showTimeInput() {
+      if (timerInterval) return;
+      minutesEl.style.display = 'none';
+      timeInput.style.display = 'flex';
+      editMinutes.focus();
+    }
+
+    function hideTimeInput() {
+      minutesEl.style.display = 'block';
+      timeInput.style.display = 'none';
+    }
+
+    startBtn.onclick = startTimer;
+    pauseBtn.onclick = pauseTimer;
+    resetBtn.onclick = resetTimer;
+    fullscreenBtn.onclick = () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    };
+    presets.forEach(el => {
+      el.onclick = () => {
+        const s = Number(el.dataset.seconds);
+        if (s === 0) {
+          settingsPanel.classList.add('open');
+        } else {
+          totalSeconds = s;
+          remaining = s;
+          updateUI();
+        }
+      };
+    });
+    applyBtn.onclick = () => {
+      totalSeconds = Math.max(0, (+inputMinutes.value) * 60 + (+inputSeconds.value));
+      remaining = totalSeconds;
+      updateUI();
+    };
+    copyLink.onclick = async () => {
+      await navigator.clipboard.writeText(shareURL.value);
+    };
+    settingsToggle.onclick = () => settingsPanel.classList.toggle('open');
+    minutesEl.onclick = showTimeInput;
+    applyTimeBtn.onclick = () => {
+      const newMinutes = Math.max(0, +editMinutes.value);
+      const newSeconds = Math.max(0, Math.min(59, +editSeconds.value));
+      totalSeconds = newMinutes * 60 + newSeconds;
+      remaining = totalSeconds;
+      hideTimeInput();
+      updateUI();
+    };
+    cancelTimeBtn.onclick = hideTimeInput;
+
+    const params = new URLSearchParams(location.search);
+    if (params.has('t')) {
+      totalSeconds = Math.max(0, +params.get('t'));
+      remaining = totalSeconds;
+    }
+    updateUI();
+  </script>
+</body>
+</html>
