@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>VoltEdge Timer Pro: Ultimate Productivity Timer</title>
+    <title>VoltNexis Timer Pro: Ultimate Productivity Timer</title>
     <meta name="description" content="The most advanced web timer with themes, analytics, multiple timers, and productivity features. Perfect for Pomodoro, workouts, and focus sessions.">
-    <meta name="keywords" content="pomodoro timer, productivity timer, focus timer, workout timer, study timer, VoltEdge, time management">
-    <meta name="author" content="VoltEdge Builds">
+    <meta name="keywords" content="pomodoro timer, productivity timer, focus timer, workout timer, study timer, VoltNexis, time management">
+    <meta name="author" content="VoltNexis">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -208,7 +208,7 @@
                     <span class="wave-animation">V</span>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold">VoltEdge Timer Pro</h1>
+                    <h1 class="text-2xl font-bold">VoltNexis Timer Pro</h1>
                     <p class="text-xs text-muted">Ultimate productivity companion</p>
                 </div>
             </div>
@@ -517,7 +517,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <div class="text-sm text-muted">Version 1.2.0</div>
-                            <div class="text-xs text-muted">© 2023 VoltEdge Builds</div>
+                            <div class="text-xs text-muted">© 2023 VoltNexis Builds</div>
                         </div>
                         <button id="saveSettingsBtn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-500 to-secondary-500">
                             Save Settings
@@ -1059,7 +1059,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `voltedge-timer-data-${new Date().toISOString().split('T')[0]}.json`;
+                a.download = `voltnexis-timer-data-${new Date().toISOString().split('T')[0]}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
                 this.showNotification('Data exported successfully!', 'success');
